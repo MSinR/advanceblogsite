@@ -8,6 +8,7 @@ use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use Session;
 use App\Post;
+use App\Category;
 
 class PostsController extends Controller
 {
@@ -38,7 +39,8 @@ class PostsController extends Controller
      */
     public function create()
     {
-        return view('posts.create');
+        $categories = Category::all();
+        return view('posts.create')->withCategories($categories);
     }
 
     /**
@@ -53,6 +55,7 @@ class PostsController extends Controller
         $this->validate($request, array(
             'title' => 'required|max:100',
             'slug' => 'required|alpha_dash|min:5|max:255|unique:posts,slug',
+            'category_id' => 'required|integer',
             'body' => 'required|min:20'
         ));
 
@@ -60,6 +63,7 @@ class PostsController extends Controller
         $post = new Post;
         $post->title = $request->title;
         $post->slug = $request->slug;
+        $post->category_id = $request->category_id;
         $post->body = $request->body;
         $post->user_id = auth()->user()->id;
 
@@ -95,13 +99,17 @@ class PostsController extends Controller
     public function edit($id)
     {
         $post = Post::find($id);
-
+        $categories = Category::all();
+        $cats = [];
         //check for correct user
         if(auth()->user()->id !== $post->user_id) {
             return redirect('dashboard')->withError('Unauthorized Page');
         }
 
-        return view('posts.edit')->withPost($post);
+        foreach ($categories as $category) {
+            $cats[$category->id] = $category->name;
+        }
+        return view('posts.edit')->withPost($post)->withCategories($cats);
     }
 
     /**
@@ -125,6 +133,7 @@ class PostsController extends Controller
             $this->validate($request, array(
                 'title' => 'required|max:100',
                 'slug' => 'required|alpha_dash|min:5|max:255|unique:posts,slug',
+                'category_id' => 'required|integer',
                 'body' => 'required|min:20'
             ));
         }
@@ -132,6 +141,7 @@ class PostsController extends Controller
         $post = Post::find($id);
         $post->title = $request->input('title');
         $post->slug = $request->input('slug');
+        $post->category_id = $request->input('category_id');
         $post->body = $request->input('body');
 
         $post->save();

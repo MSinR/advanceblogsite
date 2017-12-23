@@ -26,6 +26,11 @@
 							<label>Last Updated:</label>
 							{{ date('M j, Y h:ia', strtotime($post->updated_at)) }}
 						</p>
+
+						<p>
+							<label>Category:</label>
+							{{ $post->category->name }}
+						</p>
 				
 
 					<hr>

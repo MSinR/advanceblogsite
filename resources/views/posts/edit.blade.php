@@ -11,8 +11,12 @@
                     {{ Form::text('title', null, ["class" => 'form-control'])}}
                 </div>
                 <div class="form-group">
-                {{ Form::label('slug', 'Slug') }}
-                {{ Form::text('slug', null, ['class' => 'form-control', 'required' => '', 'maxlength' => '255'])}}
+                    {{ Form::label('slug', 'Slug') }}
+                    {{ Form::text('slug', null, ['class' => 'form-control', 'required' => '', 'maxlength' => '255'])}}
+                </div>
+                 <div class="form-group">
+                    {{ Form::label('category_id', 'Category:') }}
+                    {{ Form::select('category_id', $categories, null, ['class' => 'form-control']) }}
                 </div>
                 <div class="form-group">
                     {{Form::label('body', 'Body')}}
