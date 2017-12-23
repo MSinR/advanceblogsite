@@ -11,6 +11,15 @@ use App\Post;
 
 class PostsController extends Controller
 {
+   /**
+     * Create a new controller instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        $this->middleware('auth', ['except' => ['index', 'show']]);
+    }
     /**
      * Display a listing of the resource.
      *
@@ -18,7 +27,7 @@ class PostsController extends Controller
      */
     public function index()
     {
-        $posts = Post::orderBy('created_at', 'desc')->paginate(10);
+        $posts = Post::orderBy('created_at', 'desc')->paginate(5);
         return view('posts.index')->withPosts($posts);
     }
 
@@ -43,13 +52,16 @@ class PostsController extends Controller
         // validate
         $this->validate($request, array(
             'title' => 'required|max:100',
+            'slug' => 'required|alpha_dash|min:5|max:255|unique:posts,slug',
             'body' => 'required|min:20'
         ));
 
         //store in the database
         $post = new Post;
         $post->title = $request->title;
+        $post->slug = $request->slug;
         $post->body = $request->body;
+        $post->user_id = auth()->user()->id;
 
         $post->save();
 
@@ -83,6 +95,12 @@ class PostsController extends Controller
     public function edit($id)
     {
         $post = Post::find($id);
+
+        //check for correct user
+        if(auth()->user()->id !== $post->user_id) {
+            return redirect('dashboard')->withError('Unauthorized Page');
+        }
+
         return view('posts.edit')->withPost($post);
     }
 
@@ -93,19 +111,28 @@ class PostsController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
+
     public function update(Request $request, $id)
     {
-
-        // validate
-        $this->validate($request, array(
+        $post = Post::find($id);
+        
+        if ($request->input('slug') == $post->slug) {
+            $this->validate($request, array(
             'title' => 'required|max:100',
             'body' => 'required|min:20'
         ));
-
-        //store in the database
-        $post = new Post;
-        $post->title = $request->title;
-        $post->body = $request->body;
+        } else {
+            $this->validate($request, array(
+                'title' => 'required|max:100',
+                'slug' => 'required|alpha_dash|min:5|max:255|unique:posts,slug',
+                'body' => 'required|min:20'
+            ));
+        }
+        //save in the database
+        $post = Post::find($id);
+        $post->title = $request->input('title');
+        $post->slug = $request->input('slug');
+        $post->body = $request->input('body');
 
         $post->save();
 
@@ -124,7 +151,16 @@ class PostsController extends Controller
      */
     public function destroy($id)
     {
-        $post = new Post;
-        $post->destroy($id);
+        $post = Post::find($id);
+
+        if(auth()->user()->id !== $post->user_id) {
+            return redirect('dashboard')->withError('Unauthorized Page');
+        }
+
+        $post->delete();
+
+        session::flash('success', 'this post was successfully deleted.');
+
+        return redirect()->route('posts.index');
     }
 }
