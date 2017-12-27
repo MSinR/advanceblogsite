@@ -32,7 +32,11 @@ Route::group(['middleware' => ['web']], function() {
 	//or u can use ['only' => ['create', 'index']
 
 	//comments
-	Route::post('comments/{$post_id}', ['uses' => 'CommentsController@store', 'as' => 'comments.store']);
+	Route::post('comments/{post_id}', ['as' => 'comments.store', 'uses' => 'CommentsController@store']);
+	Route::get('comments/{id}/edit', ['as' => 'comments.edit', 'uses' => 'CommentsController@edit']);
+	Route::put('comments/{id}', ['as' => 'comments.update', 'uses' => 'CommentsController@update']);
+	Route::delete('comments/{id}', ['as' => 'comments.destroy', 'uses' => 'CommentsController@destroy']);
+	Route::get('comments/{id}/delete', ['as' => 'comments.delete', 'uses' => 'CommentsController@delete']);
 
 	Auth::routes();
 	Route::get('/dashboard', 'DashboardController@index')->name('dashboard');
