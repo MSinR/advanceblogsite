@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use Session;
 use App\Post;
 use App\Category;
+use App\Tag;
 
 class PostsController extends Controller
 {
@@ -39,8 +40,9 @@ class PostsController extends Controller
      */
     public function create()
     {
+        $tags = Tag::all();
         $categories = Category::all();
-        return view('posts.create')->withCategories($categories);
+        return view('posts.create')->withCategories($categories)->withTags($tags);
     }
 
     /**
@@ -68,6 +70,8 @@ class PostsController extends Controller
         $post->user_id = auth()->user()->id;
 
         $post->save();
+
+        $post->tags()->sync($request->tags, false);
 
         //flash session message
         session::flash('success', 'successfully saved');
@@ -98,6 +102,8 @@ class PostsController extends Controller
      */
     public function edit($id)
     {
+        $tags = Tag::all();
+        $tagsall = [];
         $post = Post::find($id);
         $categories = Category::all();
         $cats = [];
@@ -109,7 +115,10 @@ class PostsController extends Controller
         foreach ($categories as $category) {
             $cats[$category->id] = $category->name;
         }
-        return view('posts.edit')->withPost($post)->withCategories($cats);
+        foreach ($tags as $tag) {
+            $tagsall[$tag->id] = $tag->name;
+        }
+        return view('posts.edit')->withPost($post)->withCategories($cats)->withTags($tagsall);
     }
 
     /**
@@ -146,6 +155,8 @@ class PostsController extends Controller
 
         $post->save();
 
+        $post->tags()->sync($request->tags);
+
         //flash session message
         session::flash('success', 'successfully saved');
 
@@ -162,6 +173,7 @@ class PostsController extends Controller
     public function destroy($id)
     {
         $post = Post::find($id);
+        $post->tags()->detach();
 
         if(auth()->user()->id !== $post->user_id) {
             return redirect('dashboard')->withError('Unauthorized Page');
@@ -171,6 +183,6 @@ class PostsController extends Controller
 
         session::flash('success', 'this post was successfully deleted.');
 
-        return redirect()->route('posts.index');
+        return redirect()->route('dashboard');
     }
 }

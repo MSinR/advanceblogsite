@@ -20,21 +20,30 @@ Route::group(['middleware' => ['web']], function() {
 	//Route::get('auth/register', 'Auth\RegisterController@getRegister');
 	//Route::post('auth/register', 'Auth\RegisterController@postRegister');
 
-	Route::get('blog/{slug}', ['as' => 'blog.single', 'uses' => 'BlogController@getSingle'])->where('slug', '[\w\d\-\_]+');
-	Route::get('blog', ['uses' => 'BlogController@getIndex', 'as' => 'blog.Index']);
-	Route::get('/', 'PagesController@getIndex');
-	Route::get('/about', 'PagesController@getAbout');
-	Route::get('/contact', 'PagesController@getContact');
-	Route::resource('/posts', 'PostsController');
+
+	
 
 	//Categories
 	Route::resource('/categories', 'CategoryController', ['except' => ['create']]); 
 	//or u can use ['only' => ['create', 'index']
 
+	//Tags
+	Route::resource('/tags', 'TagController', ['except' => ['create']]); 
+	//or u can use ['only' => ['create', 'index']
+
+	//comments
+	Route::post('comments/{$post_id}', ['uses' => 'CommentsController@store', 'as' => 'comments.store']);
+
 	Auth::routes();
 	Route::get('/dashboard', 'DashboardController@index')->name('dashboard');
 
-
+	Route::get('blog/{slug}', ['as' => 'blog.single', 'uses' => 'BlogController@getSingle'])->where('slug', '[\w\d\-\_]+');
+	Route::get('blog', ['uses' => 'BlogController@getIndex']);
+	Route::get('/contact', 'PagesController@getContact');
+	Route::post('/contact', 'PagesController@postContact');
+	Route::get('/about', 'PagesController@getAbout');
+	Route::get('/', 'PagesController@getIndex')->name('home');
+	Route::resource('/posts', 'PostsController');
 
 
 });
