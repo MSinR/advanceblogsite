@@ -4,12 +4,19 @@
 
 @section('stylesheets')
     {!! Html::style('css/select2.min.css') !!}
+
+    <script src="https://cloud.tinymce.com/stable/tinymce.min.js"></script>
+    <script>
+        tinymce.init({
+            selector: 'textarea'
+        });
+    </script>
 @endsection
 
 @section('content')
 	<div class="row">
         <div class="col-md-8 col-md-offset-2">
-    	{!! Form::open(['action' => 'PostsController@store', 'method' => 'POST']) !!}
+    	{!! Form::open(['action' => 'PostsController@store', 'method' => 'POST', 'files' => true]) !!}
     	<div class="form-group">
     		{{Form::label('title', 'Title')}}
     		{{Form::text('title', null, ['class' => 'form-control', 'required' => '', 'maxlength' => '255'])}}
@@ -34,6 +41,11 @@
                 <option value="{{ $tag->id }}">{{ $tag->name }}</option>
                 @endforeach
             </select>
+        </div>
+
+        <div class="form-group">
+            {{ Form::label('featured_image', 'Upload Featured Image') }}
+            {{ Form::file('featured_image') }}
         </div>
 
     	<div class="form-group">

@@ -5,8 +5,11 @@
 @section('content')
 	<div class="row">
 		<div class="col-md-8 col-md-offset-2">
+			@if($post->image)
+			<img src="{{ asset('images/' . $post->image) }}" style="width:100%;">
+			@endif
 			<h1>{{ $post->title }}</h1>
-			<p>{{ $post->body }}</p>
+			<p>{!! $post->body !!}</p>
 			<small>Posted in: {{ $post->category->name }}</small>
 		</div>
 	</div><br>

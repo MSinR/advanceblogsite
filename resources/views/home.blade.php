@@ -21,7 +21,8 @@
                 <div class="blog-post">
                     <h2 class="blog-post-title">{{$post->title}}</h2>
                     <p class="blog-post-meta">{{ date('M j, Y h:ia', strtotime($post->created_at)) }}</p>
-                    <p>{{ substr($post->body, 0, 250) }}{{ strlen($post->body) > 250 ? '...' : ""}}<a href="{{ route('blog.single', $post->slug) }}"> Read More</a></p> 
+                    <p>{{ substr(strip_tags($post->body), 0, 250) }}{{ strlen(strip_tags($post->body)) > 250 ? '...' : ""}}</p>
+                    <a href="{{ route('blog.single', $post->slug) }}" class="btn btn-default btn-sm">Read More</a>
                     <hr>
                 </div><!-- /.blog-post -->
                 @endforeach

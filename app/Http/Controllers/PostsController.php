@@ -10,6 +10,9 @@ use Session;
 use App\Post;
 use App\Category;
 use App\Tag;
+use Purifier;
+use Image;
+use Storage;
 
 class PostsController extends Controller
 {
@@ -58,7 +61,8 @@ class PostsController extends Controller
             'title' => 'required|max:100',
             'slug' => 'required|alpha_dash|min:5|max:255|unique:posts,slug',
             'category_id' => 'required|integer',
-            'body' => 'required|min:20'
+            'body' => 'required|min:20',
+            'featured_image' => 'sometimes|image'
         ));
 
         //store in the database
@@ -66,8 +70,21 @@ class PostsController extends Controller
         $post->title = $request->title;
         $post->slug = $request->slug;
         $post->category_id = $request->category_id;
-        $post->body = $request->body;
+        $post->body = Purifier::clean($request->body);
         $post->user_id = auth()->user()->id;
+
+        //save our image
+        if($request->hasFile('featured_image')) {
+            $image = $request->file('featured_image');
+            $filename = time() . '.' . $image->getClientOriginalExtension();
+            $location = public_path('images/' . $filename);
+
+            //save actual image to location
+            Image::make($image)->resize(800,400)->save($location);
+
+            //save string name of the image to database
+            $post->image = $filename;
+        }
 
         $post->save();
 
@@ -133,25 +150,39 @@ class PostsController extends Controller
     {
         $post = Post::find($id);
         
-        if ($request->input('slug') == $post->slug) {
-            $this->validate($request, array(
-            'title' => 'required|max:100',
-            'body' => 'required|min:20'
-        ));
-        } else {
+ 
             $this->validate($request, array(
                 'title' => 'required|max:100',
-                'slug' => 'required|alpha_dash|min:5|max:255|unique:posts,slug',
+                'slug' => "required|alpha_dash|min:5|max:255|unique:posts,slug,$id",
                 'category_id' => 'required|integer',
-                'body' => 'required|min:20'
+                'body' => 'required|min:20',
+                'featured_image' => 'image'
             ));
-        }
+
         //save in the database
         $post = Post::find($id);
         $post->title = $request->input('title');
         $post->slug = $request->input('slug');
         $post->category_id = $request->input('category_id');
-        $post->body = $request->input('body');
+        $post->body = Purifier::clean($request->input('body'));
+
+        //save our image
+        if($request->featured_image) {
+            $image = $request->file('featured_image');
+            $filename = time() . '.' . $image->getClientOriginalExtension();
+            $location = public_path('images/' . $filename);
+
+            //add the new image to file path
+            Image::make($image)->resize(800,400)->save($location);
+            $oldFilename = $post->image;
+            //dd($oldFilename);
+
+            //delete old image
+            Storage::delete($oldFilename);
+
+            //update string name in the database
+            $post->image = $filename;
+        }
 
         $post->save();
 
@@ -173,11 +204,14 @@ class PostsController extends Controller
     public function destroy($id)
     {
         $post = Post::find($id);
-        $post->tags()->detach();
 
         if(auth()->user()->id !== $post->user_id) {
             return redirect('dashboard')->withError('Unauthorized Page');
         }
+
+        $post->tags()->detach();
+
+        Storage::delete($post->image);
 
         $post->delete();
 

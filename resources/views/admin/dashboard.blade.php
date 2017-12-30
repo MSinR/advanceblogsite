@@ -31,7 +31,7 @@
                         <tr>
                             <th>{{$post->id}}</th>
                             <td>{{$post->title}}</td>
-                            <td>{{substr($post->body, 0, 100)}}{{ strlen($post->body) > 100 ? "..." : "" }}</td>
+                            <td>{{substr(strip_tags($post->body), 0, 100)}}{{ strlen($post->body) > 100 ? "..." : "" }}</td>
                             <td>{{date('M j, Y', strtotime($post->created_at))}}</td>
                             <td>
                                 <a href="{{route('posts.show', $post->id)}}" class="btn btn-default">View</a>
@@ -45,4 +45,5 @@
             </table>
         </div>
     </div>
+
 @endsection
